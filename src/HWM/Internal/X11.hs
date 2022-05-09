@@ -10,7 +10,7 @@ import qualified Graphics.X11.Xlib.Extras as X11
 
 
 newtype XSession = XSession
-   { _xDisplay :: X11.Display
+   { _XDisplay :: X11.Display
    }
 
 
@@ -21,14 +21,14 @@ newtype XSession = XSession
 -- XSession (Display) struct members:
 _DefaultScreenNumber :: XSession -> X11.ScreenNumber
 -- ^ Get Display.default_screen.
-_DefaultScreenNumber = X11.defaultScreen . _xDisplay
+_DefaultScreenNumber = X11.defaultScreen . _XDisplay
 
 _ScreenCount :: XSession -> C.CInt
 -- ^ Get Display.nscreens.
-_ScreenCount = X11.screenCount . _xDisplay
+_ScreenCount = X11.screenCount . _XDisplay
 
 _ScreenOfNumber :: XSession -> X11.ScreenNumber -> X11.Screen
-_ScreenOfNumber = X11.screenOfDisplay . _xDisplay
+_ScreenOfNumber = X11.screenOfDisplay . _XDisplay
 
 
 -- Screen struct members:
