@@ -4,6 +4,8 @@ This module exists to provide a simplified interface to Xlib. There's too much t
 
 module HWM.Internal.X11 where
 
+
+import Control.Monad.Reader
 import qualified Foreign.C.Types as C
 import qualified Graphics.X11 as X11
 import qualified Graphics.X11.Xlib.Extras as X11
@@ -13,12 +15,17 @@ newtype XSession = XSession
    { _XDisplay :: X11.Display
    }
 
+class HasXSession a where
+   xSession :: a -> XSession
+
+instance HasXSession XSession where
+   xSession = id
 
 -- These functions are for accessing elements of the XSession record. Currently they just wrap functions from Graphics.X11, but in the future the XSession record may cache some of the values. If RandR can change these values, they can't be treated as pure like Graphics.X11 does. They have to be accessed through IO, and, if cached, cached in a mutable ref.
 
 -- Basic operations (access members of Display struct):
 
--- XSession (Display) struct members:
+-- XSession (Display):
 _DefaultScreenNumber :: XSession -> X11.ScreenNumber
 -- ^ Get Display.default_screen.
 _DefaultScreenNumber = X11.defaultScreen . _XDisplay
@@ -31,7 +38,7 @@ _ScreenOfNumber :: XSession -> X11.ScreenNumber -> X11.Screen
 _ScreenOfNumber = X11.screenOfDisplay . _XDisplay
 
 
--- Screen struct members:
+-- Screen:
 _DisplayOfScreen :: X11.Screen -> X11.Display
 _DisplayOfScreen = X11.displayOfScreen
 
@@ -48,6 +55,14 @@ _ScreenNumberOfScreen :: X11.Screen -> X11.ScreenNumber
 _ScreenNumberOfScreen = X11.screenNumberOfScreen
 
 
+-- Window:
+getWindowAttributes ::
+    (HasXSession env, MonadReader env m, MonadIO m)=>
+    X11.Window -> m X11.WindowAttributes
+getWindowAttributes window = do
+    session <- asks $  _XDisplay . xSession
+    liftIO $ X11.getWindowAttributes session window
+{-# INLINABLE getWindowAttributes #-}
 
 -- Derived Functions:
 _DefaultScreen :: XSession -> X11.Screen
@@ -57,10 +72,10 @@ _DefaultScreen = _ScreenOfNumber <*> _DefaultScreenNumber
 _DefaultRootWindow :: XSession -> X11.Window
 _DefaultRootWindow = _RootWindowOfScreen . _DefaultScreen
 
--- Use ScreenNumber rather than Screen:
+-- -- Use ScreenNumber rather than Screen:
 
-_xScreenNumberHeight :: XSession -> X11.ScreenNumber -> X11.Dimension
-_xScreenNumberHeight xSession screenNumber = _HeightOfScreen (_ScreenOfNumber xSession screenNumber)
+-- _xScreenNumberHeight :: XSession -> X11.ScreenNumber -> X11.Dimension
+-- _xScreenNumberHeight xSession screenNumber = _HeightOfScreen (_ScreenOfNumber xSession screenNumber)
 
-_xScreenNumberWidth :: XSession -> X11.ScreenNumber -> X11.Dimension
-_xScreenNumberWidth xSession screenNumber = _WidthOfScreen (_ScreenOfNumber xSession screenNumber)
+-- _xScreenNumberWidth :: XSession -> X11.ScreenNumber -> X11.Dimension
+-- _xScreenNumberWidth xSession screenNumber = _WidthOfScreen (_ScreenOfNumber xSession screenNumber)
