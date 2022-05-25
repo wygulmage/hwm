@@ -17,7 +17,11 @@ build-type:          Simple
 extra-source-files:  CHANGELOG.md
 
 library
-  exposed-modules:     HWM.Internal.X11
+  exposed-modules:
+    HWM.Internal.X11
+    HWM.Internal.LibX11.Event
+    HWM.Internal.LibX11.Lens
+    HWM.Internal.Optic
   -- other-modules:
   -- other-extensions:
   build-depends:
